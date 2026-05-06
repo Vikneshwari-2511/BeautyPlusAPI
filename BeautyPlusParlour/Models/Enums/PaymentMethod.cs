@@ -1,0 +1,9 @@
+﻿namespace BeautyPlusParlour.Models.Enums;
+
+public enum PaymentMethod
+{
+    Cash = 1,
+    UPI = 2,
+    Card = 3,
+    Online = 4
+}

@@ -1,0 +1,28 @@
+# Sensitive config files
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Production.json
+
+# User-specific files
+*.user
+*.suo
+launchSettings.json
+
+# Build outputs
+bin/
+obj/
+
+# Visual Studio
+.vs/
+
+# Logs
+logs/
+*.log
+
+# Node (future frontend)
+node_modules/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
