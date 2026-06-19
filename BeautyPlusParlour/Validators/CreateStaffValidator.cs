@@ -22,8 +22,7 @@ public sealed class CreateStaffValidator
             .WithMessage("Enter a valid phone number.");
 
         RuleFor(x => x.Designation)
-            .NotEmpty().WithMessage("Designation is required.")
-            .MaximumLength(100);
+            .IsInEnum().WithMessage("Invalid designation.");
 
         RuleFor(x => x.ExperienceYears)
             .InclusiveBetween(0, StaffConstants.MaxExperienceYears)
@@ -57,7 +56,7 @@ public sealed class UpdateStaffValidator
             .WithMessage("Enter a valid phone number.");
 
         RuleFor(x => x.Designation)
-            .NotEmpty().MaximumLength(100);
+            .IsInEnum().WithMessage("Invalid designation.");
 
         RuleFor(x => x.ExperienceYears)
             .InclusiveBetween(0, StaffConstants.MaxExperienceYears);

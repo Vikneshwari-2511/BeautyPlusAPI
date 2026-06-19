@@ -497,7 +497,8 @@ public sealed class BookingService : IBookingService
 
         return new PaymentDto(
             payment.Id, payment.Amount,
-            payment.PaymentType, payment.PaymentMethod,
+            payment.PaymentType ?? default, // Fix: Provide non-nullable value
+            payment.PaymentMethod ?? default, // Fix: Provide non-nullable value
             payment.Status, payment.TransactionId,
             payment.PaidAt);
     }
@@ -512,8 +513,10 @@ public sealed class BookingService : IBookingService
             .ToListAsync(ct);
 
         return payments.Select(p => new PaymentDto(
-            p.Id, p.Amount, p.PaymentType,
-            p.PaymentMethod, p.Status,
+            p.Id, p.Amount,
+            p.PaymentType ?? default, // Fix: Provide non-nullable value
+            p.PaymentMethod ?? default, // Fix: Provide non-nullable value
+            p.Status,
             p.TransactionId, p.PaidAt))
             .ToList().AsReadOnly();
     }
@@ -655,8 +658,10 @@ public sealed class BookingService : IBookingService
                 i.BufferMinutes, i.LoyaltyPoints))
                 .ToList().AsReadOnly(),
             b.Payments.Select(p => new PaymentDto(
-                p.Id, p.Amount, p.PaymentType,
-                p.PaymentMethod, p.Status,
+                p.Id, p.Amount,
+                p.PaymentType ?? default, // Fix: Provide non-nullable value
+            p.PaymentMethod ?? default, // Fix: Provide non-nullable value
+                p.Status,
                 p.TransactionId, p.PaidAt))
                 .ToList().AsReadOnly());
     }

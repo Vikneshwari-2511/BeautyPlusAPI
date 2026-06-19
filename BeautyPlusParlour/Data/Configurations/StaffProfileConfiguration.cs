@@ -31,7 +31,9 @@ public sealed class StaffProfileConfiguration
             .HasMaxLength(500);
 
         builder.Property(s => s.Designation)
-            .HasMaxLength(100).IsRequired();
+    .HasConversion<string>()
+    .HasMaxLength(50)
+    .IsRequired();
 
         builder.Property(s => s.Bio)
             .HasColumnType("text");

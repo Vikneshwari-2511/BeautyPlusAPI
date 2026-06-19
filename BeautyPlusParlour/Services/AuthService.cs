@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using BeautyPlusParlour.Configurations;
+﻿using BeautyPlusParlour.Configurations;
 using BeautyPlusParlour.Constants;
 using BeautyPlusParlour.Data;
 using BeautyPlusParlour.Exceptions;
@@ -7,8 +6,11 @@ using BeautyPlusParlour.Helpers;
 using BeautyPlusParlour.Interfaces;
 using BeautyPlusParlour.Models.DTOs.Auth;
 using BeautyPlusParlour.Models.Entities;
+using BeautyPlusParlour.Models.Enums;
+using FirebaseAdmin.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
 
 namespace BeautyPlusParlour.Services;
 
@@ -77,7 +79,97 @@ public sealed class AuthService : IAuthService
 
         return await BuildAuthResponseAsync(user, "Registration", "Registration", ct);
     }
+  
+    // ── Google Login ──────────────────────────────────────────────────────────
+    public async Task<AuthResponse>
+GoogleLoginAsync(
 
+ GoogleLoginRequest request,
+ CancellationToken ct = default)
+
+    {
+
+        var payload =
+          await FirebaseAuth
+             .DefaultInstance
+             .VerifyIdTokenAsync(
+                  request.IdToken
+             );
+
+        var email =
+           payload.Claims["email"]
+                  ?.ToString();
+
+        var name =
+           payload.Claims["name"]
+                  ?.ToString();
+
+        if (string.IsNullOrEmpty(email))
+            throw new AppException(
+              "Invalid token"
+            );
+
+
+        var user =
+        await _db.Users
+             .FirstOrDefaultAsync(
+
+             u => u.Email ==
+                 email.ToLower(),
+
+             ct);
+
+
+        if (user is null)
+        {
+
+            user =
+               User.Create(
+
+                 name ?? "User",
+
+                 email,
+
+                 GenerateSecureToken(),
+
+                 string.Empty,
+
+                 UserRole.Customer
+
+               );
+
+            _db.Users.Add(user);
+
+            await _db.SaveChangesAsync(
+               ct
+            );
+
+        }
+
+
+        _logger.LogInformation(
+
+          "Firebase login: {Email}",
+
+          email
+
+        );
+
+
+        return await
+        BuildAuthResponseAsync(
+
+          user,
+
+          "GoogleLogin",
+
+          "GoogleLogin",
+
+          ct
+
+        );
+
+    }
     // ── Login ─────────────────────────────────────────────────────────────
     public async Task<AuthResponse> LoginAsync(
         LoginRequest request, string deviceInfo,
@@ -180,7 +272,7 @@ public sealed class AuthService : IAuthService
     }
 
     // ── private helpers ───────────────────────────────────────────────────
-    private async Task<AuthResponse> BuildAuthResponseAsync(
+    public async Task<AuthResponse> BuildAuthResponseAsync(
     User user, string deviceInfo,
     string ipAddress, CancellationToken ct)
     {

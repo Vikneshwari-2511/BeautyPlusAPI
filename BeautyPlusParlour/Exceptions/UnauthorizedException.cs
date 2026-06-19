@@ -1,7 +1,16 @@
-﻿namespace BeautyPlusParlour.Exceptions;
+﻿using Microsoft.AspNetCore.Http;
 
-public sealed class UnauthorizedException : AppException
+namespace BeautyPlusParlour.Exceptions;
+
+public sealed class UnauthorizedException
+    : AppException
 {
-    public UnauthorizedException(string message)
-        : base(message, 401) { }
+    public UnauthorizedException(
+        string message = "Unauthorized."
+    ) : base(
+        message,
+        StatusCodes.Status401Unauthorized
+    )
+    {
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using BeautyPlusParlour.Models.Enums;
+using Razorpay.Api;
 
 namespace BeautyPlusParlour.Models.Entities;
 
@@ -78,8 +79,7 @@ public sealed class Booking
     {
         Status = BookingStatus.Confirmed;
         UpdatedAt = DateTime.UtcNow;
-    }
-
+    }    
     public void Start()
     {
         Status = BookingStatus.InProgress;

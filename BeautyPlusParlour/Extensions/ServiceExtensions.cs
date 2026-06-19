@@ -11,11 +11,11 @@ using BeautyPlusParlour.Models.DTOs.Review;
 using BeautyPlusParlour.Models.DTOs.Service;
 using BeautyPlusParlour.Models.DTOs.Staff;
 using BeautyPlusParlour.Models.DTOs.SubCategory;
+using BeautyPlusParlour.Models.DTOs.Users;
 using BeautyPlusParlour.Services;
 using BeautyPlusParlour.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -72,6 +72,10 @@ public static class ServiceExtensions
         services.AddScoped<INotificationService, NotificationService>();
         // ── Module 9: Dashboard ────────────────────────────────────────────────────
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IUserService, UserService>();
+
         return services;
     }
 
@@ -112,6 +116,9 @@ public static class ServiceExtensions
         // ── Module 7 validators ────────────────────────────────────────────────────
         services.AddScoped<IValidator<CreateReviewRequest>, CreateReviewValidator>();
         services.AddScoped<IValidator<UpdateReviewRequest>, UpdateReviewValidator>();
+        services.AddScoped<
+    IValidator<CreateUserRequest>,
+    CreateUserRequestValidator>();
         return services;
     }
 
@@ -133,21 +140,28 @@ public static class ServiceExtensions
                     ValidIssuer = jwt.Issuer,
                     ValidAudience = jwt.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                                                  Encoding.UTF8.GetBytes(jwt.Secret)),
+                        Encoding.UTF8.GetBytes(jwt.Secret)),
                     ClockSkew = TimeSpan.Zero
                 };
             });
+            //.AddGoogle(opts =>             
+            //{
+            //    opts.ClientId = config["Authentication:Google:ClientId"]!;
+            //    opts.ClientSecret = config["Authentication:Google:ClientSecret"]!;
+            //    opts.CallbackPath = "/signin-google";
+            //    opts.Scope.Add("email");
+            //    opts.Scope.Add("profile");
+            //});                          
 
         services.AddAuthorization(opts =>
         {
             opts.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
-            opts.AddPolicy("StaffOrAdmin", p => p.RequireRole("Admin", "Staff"));
+            opts.AddPolicy("StaffOnly", p => p.RequireRole("Staff"));
             opts.AddPolicy("CustomerOnly", p => p.RequireRole("Customer"));
         });
 
         return services;
     }
-
     public static IServiceCollection AddSwagger(
         this IServiceCollection services)
     {

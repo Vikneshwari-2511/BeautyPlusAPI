@@ -1,11 +1,12 @@
-﻿using System.Security.Claims;
-using BeautyPlusParlour.Constants;
+﻿using BeautyPlusParlour.Constants;
+using BeautyPlusParlour.Extensions;
 using BeautyPlusParlour.Interfaces;
 using BeautyPlusParlour.Models.DTOs.Common;
 using BeautyPlusParlour.Models.DTOs.Service;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BeautyPlusParlour.Controllers;
 
@@ -106,16 +107,17 @@ public sealed class ServiceController : ControllerBase
     }
 
     // ── PUT /api/services/{id}/toggle-active ──────────────────────────────
-    [HttpPut("{id:guid}/toggle-active")]
-    [Authorize(Policy = AppRoles.AdminOnly)]
+    [HttpPatch("{id:guid}/toggle-active")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ToggleActive(Guid id, CancellationToken ct)
     {
-        var adminId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await _service.ToggleActiveAsync(id, adminId, ct);
+        var adminId = User.GetUserId();   // your claims helper
+        var isActive = await _service.ToggleActiveAsync(id, adminId, ct);
 
-        return Ok(ApiResponse<object>.Ok(null!, ResponseMessages.ServiceToggled));
+        return Ok(ApiResponse<object>.Ok(
+            new { isActive },
+            isActive ? "Service activated" : "Service deactivated"));
     }
-
     // ── DELETE /api/services/{id} ─────────────────────────────────────────
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = AppRoles.AdminOnly)]

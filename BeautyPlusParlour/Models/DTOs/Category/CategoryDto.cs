@@ -12,5 +12,6 @@ public sealed record CategoryDto(
     int DisplayOrder,
     bool IsActive,
     int ServiceCount,
+    int SubCategoryCount,
     DateTime CreatedAt
 );

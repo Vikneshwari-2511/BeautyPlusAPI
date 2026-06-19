@@ -31,21 +31,24 @@ public sealed record ServiceDto(
     OnSiteDetailDto? OnSiteDetail,
     DateTime CreatedAt
 );
-
 public sealed record ServiceListDto(
-    Guid Id,
-    string Name,
-    string Slug,
-    string CategoryName,
-    string? SubCategoryName,
-    ServiceType ServiceTypeActual,
-    Gender Gender,
-    decimal EffectivePrice,
-    int DurationMinutes,
-    int LoyaltyPoints,
-    string? ImageUrl,
-    bool IsFeatured,
-    bool IsPopular
+    Guid Id,               // 1
+    string Name,             // 2
+    string Slug,             // 3
+    string CategoryName,     // 4
+    string? SubCategoryName,  // 5
+    ServiceType ServiceTypeActual,// 6
+    Gender Gender,           // 7
+    decimal BasePrice,        // 8
+    decimal? DiscountedPrice,  // 9
+    decimal EffectivePrice,   // 10
+    int DurationMinutes,  // 11
+    int BufferMinutes,    // 12
+    int LoyaltyPoints,    // 13
+    string? ImageUrl,         // 14  ← position matters
+    bool IsActive,         // 15
+    bool IsFeatured,       // 16
+    bool IsPopular         // 17
 );
 
 public sealed record OnSiteDetailDto(

@@ -144,7 +144,10 @@ public sealed class CategoryService : ICategoryService
         var serviceCount = await _db.Services
             .CountAsync(s => s.CategoryId == id && s.IsActive, ct);
 
-        return MapToDto(category, serviceCount);
+        var subCategoryCount = await _db.SubCategories
+            .CountAsync(sc => sc.CategoryId == id && sc.IsActive, ct);
+
+        return MapToDto(category, serviceCount, subCategoryCount);
     }
 
     public async Task<IReadOnlyList<CategoryDto>> GetAllAsync(
@@ -166,7 +169,9 @@ public sealed class CategoryService : ICategoryService
         {
             var count = await _db.Services
                 .CountAsync(s => s.CategoryId == c.Id && s.IsActive, ct);
-            result.Add(MapToDto(c, count));
+            var subCategoryCount = await _db.SubCategories
+                .CountAsync(sc => sc.CategoryId == c.Id && sc.IsActive, ct);
+            result.Add(MapToDto(c, count, subCategoryCount));
         }
 
         return result.AsReadOnly();
@@ -228,9 +233,9 @@ public sealed class CategoryService : ICategoryService
     }
 
     private static CategoryDto MapToDto(
-        Category c, int serviceCount) =>
+        Category c, int serviceCount, int subCategoryCount) =>
         new(c.Id, c.Name, c.Slug, c.Description,
             c.ServiceTypeDefault, c.ImageUrl,
             c.DisplayOrder, c.IsActive,
-            serviceCount, c.CreatedAt);
+            serviceCount, subCategoryCount, c.CreatedAt);
 }

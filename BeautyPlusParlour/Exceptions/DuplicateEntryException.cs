@@ -1,8 +1,16 @@
-﻿namespace BeautyPlusParlour.Exceptions
+﻿namespace BeautyPlusParlour.Exceptions;
+
+public sealed class DuplicateEntryException
+    : AppException
 {
-    public class DuplicateEntryException: Exception
+    public DuplicateEntryException(
+        string entity,
+        string field,
+        string value
+    ) : base(
+        $"{entity} with {field} '{value}' already exists.",
+        409
+    )
     {
-        public DuplicateEntryException(string entity, string field, string value)
-     : base($"{entity} with {field} '{value}' already exists.") { }
     }
 }

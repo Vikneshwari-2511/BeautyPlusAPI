@@ -205,7 +205,10 @@ public sealed class ServiceManagementService : IServiceManagementService
             "Service", id.ToString(), ct: ct);
     }
 
-    public async Task ToggleActiveAsync(
+
+
+    // ✅ Fixed — return new state
+    public async Task<bool> ToggleActiveAsync(
         Guid id, Guid adminId, CancellationToken ct = default)
     {
         var service = await _db.Services
@@ -219,8 +222,14 @@ public sealed class ServiceManagementService : IServiceManagementService
             adminId, AuditAction.Updated,
             "Service", id.ToString(),
             null,
-            JsonSerializer.Serialize(new { IsActive = service.IsActive }),
+            JsonSerializer.Serialize(new { service.IsActive }),
             ct: ct);
+
+        _logger.LogInformation(
+            "Service {Id} toggled to IsActive={IsActive} by Admin {AdminId}",
+            id, service.IsActive, adminId);
+
+        return service.IsActive;   // ← return new state
     }
 
     public async Task<ServiceDto> GetByIdAsync(
@@ -238,18 +247,20 @@ public sealed class ServiceManagementService : IServiceManagementService
     }
 
     public async Task<PagedResponse<ServiceListDto>> GetAllAsync(
-        ServiceFilterRequest filter, CancellationToken ct = default)
+    ServiceFilterRequest filter, CancellationToken ct = default)
     {
-        var pageSize = Math.Min(
-            filter.PageSize, ServiceConstants.MaxPageSize);
+        // ── Page size guard ──────────────────────────────────────────
+        var pageSize = Math.Min(filter.PageSize, ServiceConstants.MaxPageSize);
 
+        // ── Base query — no IsActive hardcode, admin sees everything ─
         var query = _db.Services
-            .AsNoTracking()
-            .Include(s => s.Category)
-            .Include(s => s.SubCategory)
-            .Where(s => s.IsActive)
-            .AsQueryable();
+    .AsNoTracking()
+    .Include(s => s.Category)
+    .Include(s => s.SubCategory)
+    .Where(s => s.DeletedAt == null)   // ← never show deleted
+    .AsQueryable();
 
+        // ── Filters ──────────────────────────────────────────────────
         if (filter.CategoryId.HasValue)
             query = query.Where(s => s.CategoryId == filter.CategoryId);
 
@@ -276,6 +287,12 @@ public sealed class ServiceManagementService : IServiceManagementService
         if (filter.IsPopular.HasValue)
             query = query.Where(s => s.IsPopular == filter.IsPopular);
 
+        // null  → no filter   (admin sees all)
+        // true  → active only (customer UI)
+        // false → inactive only (admin audit view)
+        if (filter.IsActive.HasValue)
+            query = query.Where(s => s.IsActive == filter.IsActive);
+
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var search = filter.Search.ToLower().Trim();
@@ -285,8 +302,10 @@ public sealed class ServiceManagementService : IServiceManagementService
                  s.Description.ToLower().Contains(search)));
         }
 
+        // ── Total count before pagination ────────────────────────────
         var totalCount = await query.CountAsync(ct);
 
+        // ── Paginate ─────────────────────────────────────────────────
         var services = await query
             .OrderBy(s => s.DisplayOrder)
             .ThenBy(s => s.Name)
@@ -294,13 +313,13 @@ public sealed class ServiceManagementService : IServiceManagementService
             .Take(pageSize)
             .ToListAsync(ct);
 
+        // ── Return ───────────────────────────────────────────────────
         return new PagedResponse<ServiceListDto>(
             services.Select(MapToListDto).ToList(),
             totalCount,
             filter.Page,
             pageSize);
     }
-
     public async Task<IReadOnlyList<ServiceListDto>> GetFeaturedAsync(
         CancellationToken ct = default)
     {
@@ -379,10 +398,23 @@ public sealed class ServiceManagementService : IServiceManagementService
             s.CreatedAt);
 
     private static ServiceListDto MapToListDto(Service s) =>
-        new(s.Id, s.Name, s.Slug,
-            s.Category.Name, s.SubCategory?.Name,
-            s.ServiceTypeActual, s.Gender,
+        new(
+            s.Id,
+            s.Name,
+            s.Slug,
+            s.Category.Name,
+            s.SubCategory?.Name,
+            s.ServiceTypeActual,
+            s.Gender,
+            s.BasePrice,
+            s.DiscountedPrice,
             s.DiscountedPrice ?? s.BasePrice,
-            s.DurationMinutes, s.LoyaltyPoints,
-            s.ImageUrl, s.IsFeatured, s.IsPopular);
+            s.DurationMinutes,
+            s.BufferMinutes,
+            s.LoyaltyPoints,
+            s.ImageUrl,                         // ← was missing
+            s.IsActive,
+            s.IsFeatured,
+            s.IsPopular
+        );
 }

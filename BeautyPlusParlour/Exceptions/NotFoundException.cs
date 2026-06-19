@@ -1,14 +1,28 @@
-﻿using BeautyPlusParlour.Exceptions;
+﻿using Microsoft.AspNetCore.Http;
 
-public sealed class NotFoundException : AppException
+namespace BeautyPlusParlour.Exceptions;
+
+public sealed class NotFoundException
+    : AppException
 {
     public object? Key { get; }
 
-    public NotFoundException(string message)
-        : base(message, 404) { }
+    public NotFoundException(
+        string message
+    ) : base(
+        message,
+        StatusCodes.Status404NotFound
+    )
+    {
+    }
 
-    public NotFoundException(string message, object key)
-        : base(message, 404)
+    public NotFoundException(
+        string message,
+        object key
+    ) : base(
+        message,
+        StatusCodes.Status404NotFound
+    )
     {
         Key = key;
     }

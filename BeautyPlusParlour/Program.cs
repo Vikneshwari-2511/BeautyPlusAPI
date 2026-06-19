@@ -2,7 +2,9 @@
 using BeautyPlusParlour.Extensions;
 using Serilog;
 using Serilog.Events;
-
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using System.Text.Json;
 // ── Bootstrap logger (captures startup errors) ────────────────────────────
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -12,7 +14,7 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-
+    var allowedOrigins = builder.Configuration["AllowedOrigins"];
     // ── Serilog ───────────────────────────────────────────────────────────
     builder.Host.UseSerilog((ctx, services, config) =>
     {
@@ -34,6 +36,20 @@ try
                     "{Message:lj}{NewLine}{Exception}");
     });
 
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAngular",
+            policy =>
+            {
+                policy.WithOrigins(
+                    "http://localhost:4200",
+                    "https://localhost:4200"
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+            });
+    });
     // ── Strongly typed settings ───────────────────────────────────────────
     builder.Services.Configure<JwtSettings>(
         builder.Configuration.GetSection("JwtSettings"));
@@ -49,12 +65,37 @@ try
         .AddCorsPolicy(builder.Configuration)
         .AddRateLimiting()               // ← NEW
         .AddSwagger()
-        .AddControllers();
+        .AddControllers()
+       .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy
+                = JsonNamingPolicy.CamelCase;
+        });
+    // Redis Cache
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration
+            .GetConnectionString("Redis");
+        options.InstanceName = "BeautyPlus:";
+    });
 
+    var serviceAccountPath = builder.Configuration
+    ["Firebase:ServiceAccountPath"];
+
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential
+            .FromFile(serviceAccountPath)
+    });
     var app = builder.Build();
 
     // ── Middleware pipeline ────────────────────────────────────────────────
     app.UseGlobalExceptionHandler();
+    //if (app.Environment.IsDevelopment())
+    //{
+    //    app.UseDeveloperExceptionPage();
+    //}
+
     app.UseSerilogRequestLogging(opts =>
     {
         opts.MessageTemplate =
@@ -66,13 +107,37 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers.Append(
+            "Cross-Origin-Opener-Policy",
+            "same-origin-allow-popups"
+        );
+
+        await next();
+    });
 
     app.UseHttpsRedirection();
-    app.UseSecureHeaders(); 
+
+    // ADD before app.UseRouting()
+    app.Use(async (context, next) =>
+    {
+        context.Request.EnableBuffering();
+        await next();
+    });
+
+    app.UseStaticFiles();
+
+    app.UseSecureHeaders();
+
     app.UseCors("AllowAngular");
-    app.UseRateLimiter();    
+
     app.UseAuthentication();
+
     app.UseAuthorization();
+
+    app.UseRateLimiter();
+
     app.MapControllers();
 
     await app.MigrateDatabaseAsync();

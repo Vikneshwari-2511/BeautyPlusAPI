@@ -2,8 +2,8 @@
 
 public enum PaymentStatus
 {
-    Pending = 1,
-    Completed = 2,
-    Failed = 3,
-    Refunded = 4
+    Created = 1,    // Order created, awaiting payment
+    Captured = 2,   // Payment successful
+    Failed = 3,     // Payment failed
+    Refunded = 4    // Payment refunded
 }

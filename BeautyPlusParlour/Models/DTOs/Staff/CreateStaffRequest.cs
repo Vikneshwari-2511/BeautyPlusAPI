@@ -8,7 +8,7 @@ public sealed record CreateStaffRequest(
     string PhoneNumber,
     string? AlternatePhone,
     string? ProfileImageUrl,
-    string Designation,
+    Designation Designation,
     string? Bio,
     int ExperienceYears,
     Gender Gender,

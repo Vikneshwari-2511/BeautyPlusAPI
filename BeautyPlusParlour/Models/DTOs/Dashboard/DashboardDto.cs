@@ -103,7 +103,7 @@ public sealed record TopStaffDto(
     Guid StaffId,
     string FullName,
     string EmployeeCode,
-    string Designation,
+    Designation Designation,
     string? ProfileImageUrl,
     int BookingCount,
     int CompletedBookings,

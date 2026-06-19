@@ -171,4 +171,10 @@ public static class ResponseMessages
     public const string RecentBookingsFetched = "Recent bookings retrieved successfully.";
     public const string CustomerAnalyticsFetched = "Customer analytics retrieved successfully.";
     public const string LoyaltyAnalyticsFetched = "Loyalty analytics retrieved successfully.";
+    // ── Firebase Auth ─────────────────────────────────────────
+    public const string FirebaseTokenInvalid = "Invalid Firebase token.";
+    public const string FirebaseLoginSuccess = "Phone login successful.";
+    public const string FirebaseAccountCreated = "Account created via phone login.";
+    // ── Common ─────────────────────────────────────────
+    public const string AccessDenied = "You do not have permission to perform this action.";
 }

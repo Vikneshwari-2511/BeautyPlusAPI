@@ -58,8 +58,8 @@ public sealed class PasswordController : ControllerBase
 
         if (user is not null)
         {
-            var otp = await _otps.GenerateAsync(
-                user.Id, OtpPurpose.PasswordReset, ct);
+            var otp = await _otps.GenerateAndStoreAsync(
+                 user.Id.ToString(), OtpPurpose.PasswordReset, ct);
 
             await _emails.SendOtpEmailAsync(
                 user.Email, user.FullName, otp, ct);
@@ -106,8 +106,12 @@ public sealed class PasswordController : ControllerBase
             ?? throw new NotFoundException("No active account found for this email.");
 
         // ── Verify OTP ────────────────────────────────────────────────────
-        var isValid = await _otps.VerifyAsync(
-            user.Id, request.Otp, OtpPurpose.PasswordReset, ct);
+        // ✅ Correct Order:
+        var isValid = await _otps.ValidateAsync(
+            user.Id.ToString(),       // email/id
+            OtpPurpose.PasswordReset, // purpose
+            request.Otp,              // otp
+            ct);
 
         if (!isValid)
             return BadRequest(ApiResponse<object>.Fail(ResponseMessages.InvalidOtp));

@@ -1,6 +1,7 @@
 ﻿using BeautyPlusParlour.Data;
 using BeautyPlusParlour.Middleware;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BeautyPlusParlour.Extensions;
 
@@ -15,7 +16,7 @@ public static class ApplicationExtensions
 
     public static WebApplication UseGlobalExceptionHandler(this WebApplication app)
     {
-        app.UseMiddleware<ExceptionMiddleware>();
+        app.UseMiddleware<GlobalExceptionMiddleware>();
         return app;
     }
 
@@ -51,5 +52,13 @@ public static class ApplicationExtensions
         });
 
         return app;
+    }
+    public static Guid GetUserId(this ClaimsPrincipal user)
+    {
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            throw new InvalidOperationException(
+                "User ID claim is missing or invalid.");
+        return userId;
     }
 }

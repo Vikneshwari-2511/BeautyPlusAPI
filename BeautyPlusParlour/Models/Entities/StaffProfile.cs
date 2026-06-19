@@ -11,7 +11,7 @@ public sealed class StaffProfile
     public string PhoneNumber { get; private set; } = string.Empty;
     public string? AlternatePhone { get; private set; }
     public string? ProfileImageUrl { get; private set; }
-    public string Designation { get; private set; } = string.Empty;
+    public Designation Designation { get; private set; }
     public string? Bio { get; private set; }
     public int ExperienceYears { get; private set; }
     public Gender Gender { get; private set; }
@@ -39,13 +39,13 @@ public sealed class StaffProfile
         Guid userId, string employeeCode,
         string fullName, string phoneNumber,
         string? alternatePhone, string? profileImageUrl,
-        string designation, string? bio,
+         Designation Designation, string? bio,
         int experienceYears, Gender gender,
         bool isAvailableForOnSite, DateOnly joinedAt,
         Guid createdBy)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fullName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(designation);
+        //ArgumentException.ThrowIfNullOrWhiteSpace(designation);
 
         return new StaffProfile
         {
@@ -55,7 +55,7 @@ public sealed class StaffProfile
             PhoneNumber = phoneNumber.Trim(),
             AlternatePhone = alternatePhone?.Trim(),
             ProfileImageUrl = profileImageUrl?.Trim(),
-            Designation = designation.Trim(),
+            Designation = Designation,
             Bio = bio?.Trim(),
             ExperienceYears = experienceYears,
             Gender = gender,
@@ -68,7 +68,7 @@ public sealed class StaffProfile
     public void Update(
         string fullName, string phoneNumber,
         string? alternatePhone, string? profileImageUrl,
-        string designation, string? bio,
+        Designation designation, string? bio,
         int experienceYears, Gender gender,
         bool isAvailableForOnSite, DateOnly joinedAt,
         Guid updatedBy)
@@ -77,7 +77,7 @@ public sealed class StaffProfile
         PhoneNumber = phoneNumber.Trim();
         AlternatePhone = alternatePhone?.Trim();
         ProfileImageUrl = profileImageUrl?.Trim();
-        Designation = designation.Trim();
+        Designation = designation;
         Bio = bio?.Trim();
         ExperienceYears = experienceYears;
         Gender = gender;

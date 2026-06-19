@@ -2,6 +2,7 @@
 appsettings.Development.json
 appsettings.Local.json
 appsettings.Production.json
+firebase-service-account.json
 
 # User-specific files
 *.user

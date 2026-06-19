@@ -57,7 +57,24 @@ public sealed class User
         LockedUntil = null;
         UpdatedAt = DateTime.UtcNow;
     }
-
+    public void UpdateProfile(
+    string fullName,
+    string phoneNumber)
+    {
+        FullName = fullName.Trim();
+        PhoneNumber = phoneNumber.Trim();
+        UpdatedAt = DateTime.UtcNow;
+    }
+    public void Activate()
+    {
+        IsActive = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+    public void Deactivate()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
     public void RecordFailedLogin(int maxAttempts = 5, int lockoutMinutes = 15)
     {
         FailedLoginCount++;

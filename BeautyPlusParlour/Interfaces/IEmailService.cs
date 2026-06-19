@@ -18,4 +18,12 @@ public interface IEmailService
         string toEmail, string fullName,
         string subject, string htmlBody,
         CancellationToken ct = default);
+    Task SendBookingConfirmationAsync(
+    string email,
+    string fullName,
+    string bookingCode,
+    string bookingDate,
+    string bookingTime,
+    decimal amount,
+    CancellationToken ct = default);
 }
